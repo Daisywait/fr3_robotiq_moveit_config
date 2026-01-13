@@ -1,0 +1,23 @@
+controller_names:
+  - fr3_arm_controller
+  - robotiq_gripper_controller # [修改] 更改为 Robotiq 控制器名称
+
+fr3_arm_controller:
+  action_ns: follow_joint_trajectory
+  type: FollowJointTrajectory
+  default: true
+  joints:
+    - fr3_joint1
+    - fr3_joint2
+    - fr3_joint3
+    - fr3_joint4
+    - fr3_joint5
+    - fr3_joint6
+    - fr3_joint7
+
+robotiq_gripper_controller: # [修改] 新的 Robotiq 夹爪配置
+    action_ns: follow_joint_trajectory # 由于我们使用 JTC，所以 action_ns 也应改为 follow_joint_trajectory
+    type: FollowJointTrajectory
+    default: true
+    joints:
+      - robotiq_85_left_knuckle_joint # Robotiq 的主驱动关节

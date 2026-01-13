@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>fr3_robotiq_moveit_config</name>
+  <version>2.1.0</version>
+  <description>MoveIt2 configuration files for the FR3 robot with a Robotiq 2F-85 gripper.</description>
+  <maintainer email="your_email@example.com">Your Name</maintainer>
+  <license>Apache 2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <!-- 核心机器人模型和描述依赖 -->
+  <exec_depend>franka_description</exec_depend>
+  <exec_depend>franka_hardware</exec_depend>
+  <depend>franka_robot_state_broadcaster</depend>
+  <depend>franka_fr3_moveit_config</depend>
+  
+  <!-- [关键新增] Robotiq 夹爪的 URDF 描述文件依赖 -->
+  <exec_depend>robotiq_description</exec_depend>
+  
+  <!-- [移除] 移除了对 Franka Hand 特有包 franka_gripper 的依赖 -->
+  
+  <!-- ROS 2 基础和 MoveIt 核心依赖 -->
+  <exec_depend>joint_state_publisher</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>joint_state_broadcaster</exec_depend>
+  <exec_depend>controller_manager</exec_depend>
+  <exec_depend>moveit_ros_move_group</exec_depend>
+  <exec_depend>moveit_kinematics</exec_depend>
+  <exec_depend>moveit_planners_ompl</exec_depend>
+  <exec_depend>moveit_ros_visualization</exec_depend>
+  <exec_depend>joint_trajectory_controller</exec_depend>
+  
+  <!-- [新增] 夹爪控制器可能需要的消息包，例如 FollowJointTrajectory -->
+  <exec_depend>control_msgs</exec_depend> 
+  
+  <exec_depend>moveit_simple_controller_manager</exec_depend>
+  <exec_depend>rviz2</exec_depend>
+  <exec_depend>xacro</exec_depend>
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+  <test_depend>ament_cmake_pytest</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
