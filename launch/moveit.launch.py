@@ -22,11 +22,9 @@ from launch import LaunchDescription
 from launch.actions import (
     DeclareLaunchArgument,
     ExecuteProcess,
-    IncludeLaunchDescription,
     Shutdown
 )
 from launch.conditions import UnlessCondition
-from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import (
     Command,
     FindExecutable,
@@ -35,7 +33,6 @@ from launch.substitutions import (
 )
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
-from launch_ros.substitutions import FindPackageShare
 
 import yaml
 
@@ -54,17 +51,13 @@ def load_yaml(package_name, file_path):
 def generate_launch_description():
     robot_ip_parameter_name = 'robot_ip'
     use_fake_hardware_parameter_name = 'use_fake_hardware'
-    fake_sensor_commands_parameter_name = 'fake_sensor_commands'
     namespace_parameter_name = 'namespace'
 
     robot_ip = LaunchConfiguration(robot_ip_parameter_name)
     use_fake_hardware = LaunchConfiguration(use_fake_hardware_parameter_name)
-    fake_sensor_commands = LaunchConfiguration(
-        fake_sensor_commands_parameter_name)
     namespace = LaunchConfiguration(namespace_parameter_name)
 
     # Command-line arguments
-
     db_arg = DeclareLaunchArgument(
         'db', default_value='False', description='Database flag'
     )
@@ -76,51 +69,69 @@ def generate_launch_description():
     )
 
     robot_description_config = Command(
-        [FindExecutable(name='xacro'), ' ', franka_xacro_file, ' hand:=true',
-         ' robot_ip:=', robot_ip, ' use_fake_hardware:=', use_fake_hardware,
-         ' fake_sensor_commands:=', fake_sensor_commands, ' ros2_control:=true'])
+        [FindExecutable(name='xacro'), ' ', franka_xacro_file,
+         ' arm_id:=fr3',
+         ' robot_ip:=', robot_ip,
+         ' use_fake_hardware:=', use_fake_hardware])
 
     robot_description = {'robot_description': ParameterValue(
         robot_description_config, value_type=str)}
 
     franka_semantic_xacro_file = os.path.join(
         get_package_share_directory('franka_description'),
-        'robots', 'fr3', 'fr3.srdf.xacro'
+        'robots', 'fr3', 'fr3_robotiq.srdf.xacro'
     )
 
     robot_description_semantic_config = Command(
         [FindExecutable(name='xacro'), ' ',
-         franka_semantic_xacro_file, ' hand:=true']
+         franka_semantic_xacro_file, ' hand:=true', ' ee_id:=robotiq_gripper']
     )
 
     robot_description_semantic = {'robot_description_semantic': ParameterValue(
         robot_description_semantic_config, value_type=str)}
 
     kinematics_yaml = load_yaml(
-        'franka_fr3_moveit_config', 'config/kinematics.yaml'
+        'fr3_robotiq_moveit_config', 'config/fr3_robotiq_kinematics.yaml'
     )
+
+    kinematics_config = {
+        'robot_description_kinematics': kinematics_yaml
+    }
+
+    joint_limits_yaml = load_yaml(
+        'fr3_robotiq_moveit_config', 'config/fr3_robotiq_joint_limits.yaml'
+    )
+
+    joint_limits_config = {
+        'robot_description_planning': joint_limits_yaml
+    }
 
     # Planning Functionality
     ompl_planning_pipeline_config = {
         'move_group': {
-            'planning_plugin': 'ompl_interface/OMPLPlanner',
-            'request_adapters': 'default_planner_request_adapters/AddTimeOptimalParameterization '
-                                'default_planner_request_adapters/ResolveConstraintFrames '
-                                'default_planner_request_adapters/FixWorkspaceBounds '
-                                'default_planner_request_adapters/FixStartStateBounds '
-                                'default_planner_request_adapters/FixStartStateCollision '
-                                'default_planner_request_adapters/FixStartStatePathConstraints',
+            'planning_plugins': ['ompl_interface/OMPLPlanner'],
+            'request_adapters': [
+                'default_planning_request_adapters/ResolveConstraintFrames',
+                'default_planning_request_adapters/ValidateWorkspaceBounds',
+                'default_planning_request_adapters/CheckStartStateBounds',
+                'default_planning_request_adapters/CheckStartStateCollision',
+                                ],
+            'response_adapters': [
+                'default_planning_response_adapters/AddTimeOptimalParameterization',
+                'default_planning_response_adapters/ValidateSolution',
+                'default_planning_response_adapters/DisplayMotionPath'
+                                  ],
             'start_state_max_bounds_error': 0.1,
         }
     }
     ompl_planning_yaml = load_yaml(
-        'franka_fr3_moveit_config', 'config/ompl_planning.yaml'
+        'fr3_robotiq_moveit_config', 'config/fr3_robotiq_ompl_planning.yaml'
     )
     ompl_planning_pipeline_config['move_group'].update(ompl_planning_yaml)
 
     # Trajectory Execution Functionality
     moveit_simple_controllers_yaml = load_yaml(
-        'franka_fr3_moveit_config', 'config/fr3_controllers.yaml'
+        'fr3_robotiq_moveit_config', 'config/fr3_robotiq_controllers.yaml'
     )
     moveit_controllers = {
         'moveit_simple_controller_manager': moveit_simple_controllers_yaml,
@@ -151,7 +162,8 @@ def generate_launch_description():
         parameters=[
             robot_description,
             robot_description_semantic,
-            kinematics_yaml,
+            kinematics_config,
+            joint_limits_config,
             ompl_planning_pipeline_config,
             trajectory_execution,
             moveit_controllers,
@@ -161,7 +173,7 @@ def generate_launch_description():
 
     # RViz
     rviz_base = os.path.join(get_package_share_directory(
-        'franka_fr3_moveit_config'), 'rviz')
+        'fr3_robotiq_moveit_config'), 'rviz')
     rviz_full_config = os.path.join(rviz_base, 'moveit.rviz')
 
     rviz_node = Node(
@@ -174,7 +186,7 @@ def generate_launch_description():
             robot_description,
             robot_description_semantic,
             ompl_planning_pipeline_config,
-            kinematics_yaml,
+            kinematics_config,
         ],
     )
 
@@ -189,9 +201,9 @@ def generate_launch_description():
     )
 
     ros2_controllers_path = os.path.join(
-        get_package_share_directory('franka_fr3_moveit_config'),
+        get_package_share_directory('fr3_robotiq_moveit_config'),
         'config',
-        'fr3_ros_controllers.yaml',
+        'fr3_robotiq_ros_controllers.yaml',
     )
     ros2_control_node = Node(
         package='controller_manager',
@@ -227,7 +239,8 @@ def generate_launch_description():
         name='joint_state_publisher',
         namespace=namespace,
         parameters=[
-            {'source_list': ['franka/joint_states', 'fr3_gripper/joint_states'], 'rate': 30}],
+            {'source_list': ['franka/joint_states'], 'rate': 30}
+        ],
     )
 
     franka_robot_state_broadcaster = Node(
@@ -252,31 +265,18 @@ def generate_launch_description():
         use_fake_hardware_parameter_name,
         default_value='false',
         description='Use fake hardware')
-    fake_sensor_commands_arg = DeclareLaunchArgument(
-        fake_sensor_commands_parameter_name,
-        default_value='false',
-        description="Fake sensor commands. Only valid when '{}' is true".format(
-            use_fake_hardware_parameter_name))
-    gripper_launch_file = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([PathJoinSubstitution(
-            [FindPackageShare('franka_gripper'), 'launch', 'gripper.launch.py'])]),
-        launch_arguments={'robot_ip': robot_ip,
-                          use_fake_hardware_parameter_name: use_fake_hardware,
-                          'namespace': namespace}.items(),
-    )
+
     return LaunchDescription(
         [robot_arg,
          namespace_arg,
          use_fake_hardware_arg,
-         fake_sensor_commands_arg,
          db_arg,
          rviz_node,
          robot_state_publisher,
          run_move_group_node,
          ros2_control_node,
          joint_state_publisher,
-         franka_robot_state_broadcaster,
-         gripper_launch_file
+         franka_robot_state_broadcaster
          ]
         + load_controllers
     )
