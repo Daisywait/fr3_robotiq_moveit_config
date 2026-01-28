@@ -26,8 +26,6 @@ find_package(joint_trajectory_controller REQUIRED)
 find_package(controller_manager REQUIRED)
 find_package(robot_state_publisher REQUIRED)
 find_package(xacro REQUIRED)
-find_package(launch )
-find_package(launch_ros)
 
 # -------------------------------------------------------------------
 # 安装文件 (Install Files) - 沿用您选择的目录安装方式
