@@ -1,8 +1,8 @@
 /**: 
   controller_manager:
     ros__parameters:
-      update_rate: 1000  # Hz
-      thread_priority: 98
+      update_rate: 500  # Hz (diagnostic: reduce to check comm/reflex stability)
+      thread_priority: 90
       enable_overrun: false
 
       fr3_arm_controller:
