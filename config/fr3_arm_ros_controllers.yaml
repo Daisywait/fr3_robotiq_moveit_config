@@ -2,6 +2,8 @@
   controller_manager_arm:
     ros__parameters:
       update_rate: 500  # Hz
+      thread_priority: 90
+      enable_overrun: false
 
       fr3_arm_controller:
         type: joint_trajectory_controller/JointTrajectoryController
