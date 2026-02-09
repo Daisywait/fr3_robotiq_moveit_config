@@ -29,5 +29,5 @@
 - 使用 Robotiq 的 URDF/SRDF
 
 ## 6) 启动方式说明
-- 仅保留一键启动 `fr3_robotiq_servo.launch.py`
-- 夹爪默认自动激活并标定
+- 推荐分开启动：机械臂与夹爪分别使用独立的 controller_manager
+- 一键启动（单 CM）仍可用，但夹爪通信可能影响机械臂实时性能
