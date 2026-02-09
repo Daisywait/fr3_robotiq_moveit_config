@@ -30,4 +30,4 @@
 
 ## 6) 启动方式说明
 - 仅保留一键启动 `fr3_robotiq_servo.launch.py`
-- 夹爪默认不自动标定，可通过 `robotiq_activation_controller` 手动触发
+- 夹爪默认自动激活并标定
