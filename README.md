@@ -6,6 +6,7 @@
 ## 1) 夹爪替换：Franka Hand → Robotiq 2F-85
 - URDF/SRDF 改为 `fr3_robotiq.urdf.xacro` 与 `fr3_robotiq.srdf.xacro`
 - 引入 `robotiq_description` 并将末端 `ee_id` 固定为 `robotiq_gripper`
+- 新增 `use_gripper` Xacro 参数，允许 arm-only 启动时不加载夹爪硬件
 
 ## 2) MoveIt 控制器配置
 - `fr3_robotiq_controllers.yaml` 使用 `robotiq_gripper_controller`
